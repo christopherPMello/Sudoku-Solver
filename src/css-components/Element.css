@@ -1,27 +1,26 @@
 .input_elem {
-  width: 3rem;
-  height: 3rem;
+  margin: auto;
+  width: 50%;
+  width: 8vh;
+  height: 8vh;
   font-size: 2rem;
   text-align: center;
   color: black;
   border-width: thin;
+  border-color: black;
 }
 .readonly {
   color: #36454f;
 }
-
 .left {
   border-left: solid;
 }
-
 .right {
   border-right: solid;
 }
-
 .bottom {
   border-bottom: solid;
 }
-
 .top {
   border-top: solid;
 }

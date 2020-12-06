@@ -13,3 +13,15 @@ video {
   transition: 1s opacity;
   filter: grayscale(100%);
 }
+.banner {
+  padding-top: 1vh;
+  text-align: center;
+}
+
+.bannerSpan {
+  background-color: whitesmoke;
+  border-style: round;
+  border-radius: 15px;
+  padding-left: 12px;
+  padding-right: 12px;
+}

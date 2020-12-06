@@ -2,19 +2,9 @@ import React, { Component } from "react"
 import "../css-components/Element.css"
 
 class Element extends Component {
-  inputChange = (e) => {
-    let val = Number(e.currentTarget.value.slice(-1)[0])
-    const valStr = e.currentTarget.value.split("").reverse().join("")
-    if (isNaN(val) || val === 0) {
-      if (valStr.length > 1) {
-        val = Number(valStr[1])
-      } else {
-        val = ""
-      }
-    }
-    this.props.updateGrid(val, this.props.elem.index)
-  }
-
+  /////////////////////////////////////////////////////
+  // Conditonal rendering logic
+  /////////////////////////////////////////////////////
   classIdentifiers = () => {
     const mod = this.props.elem.modifiable
     const row = this.props.elem.row
@@ -36,6 +26,22 @@ class Element extends Component {
       iden += " bottom"
     }
     return iden
+  }
+
+  /////////////////////////////////////////////////////
+  // Updating state functions
+  /////////////////////////////////////////////////////
+  inputChange = (e) => {
+    let val = Number(e.currentTarget.value.slice(-1)[0])
+    const valStr = e.currentTarget.value.split("").reverse().join("")
+    if (isNaN(val) || val === 0) {
+      if (valStr.length > 1) {
+        val = Number(valStr[1])
+      } else {
+        val = ""
+      }
+    }
+    this.props.updateGrid(val, this.props.elem.index)
   }
 
   render() {
