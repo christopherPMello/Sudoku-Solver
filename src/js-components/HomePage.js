@@ -1,8 +1,7 @@
 import React, { Component } from "react"
-import Axios from "axios"
+import { getSudoku } from "fake-sudoku-puzzle-generator"
 import Foggy from "../attachments/Foggy_Mountain.mp4"
 import "../css-components/HomePage.css"
-import "sudoku"
 import { createBoard } from "../attachments/InitalGrid"
 import Grid from "./Grid"
 
@@ -11,7 +10,6 @@ class HomePage extends Component {
     super(props)
     this.state = {
       board: createBoard(true),
-      untouchedBoard: null,
       level: null,
       message: "Please select a difficulty and click 'New Puzzle' to play!",
     }
@@ -21,7 +19,7 @@ class HomePage extends Component {
     if (this.state.level === null) {
       this.setState((prev) => ({ message: "Choose a difficulty level!" }))
       return false
-    } else if (this.state.untouchedBoard === null && all) {
+    } else if (this.state.untouchedBoard === createBoard(true) && all) {
       this.setState((prev) => ({ message: "Click 'New Puzzle' to play!" }))
       return false
     }
@@ -34,7 +32,14 @@ class HomePage extends Component {
   solveSudokuMain = (e) => {
     e.preventDefault()
     if (!this.safeGuardFunction()) return
-    const solvedBoard = this.solveSudokuRecuse(this.state.untouchedBoard)
+
+    let newBoard = Object.assign({}, this.state.board)
+    newBoard.data.forEach((element) => {
+      element.cols.forEach((subElement) => {
+        if (subElement.modifiable === true) subElement.value = ""
+      })
+    })
+    const solvedBoard = this.solveSudokuRecuse(newBoard)
     this.setState((prev) => ({ message: "Solved Sudoku solution!", board: solvedBoard }))
   }
 
@@ -122,24 +127,37 @@ class HomePage extends Component {
   /////////////////////////////////////////////////////
   generateSudoku = async (e) => {
     e.preventDefault()
-
     if (!this.safeGuardFunction(false)) return
 
+    // Get diffuclty inputted by user
+    let difficulty = null
+    if (Number(this.state.level) === 1) {
+      difficulty = "VeryEasy"
+    } else if (Number(this.state.level) === 2) {
+      difficulty = "Easy"
+    } else if (Number(this.state.level) === 3) {
+      difficulty = "Medium"
+    } else {
+      difficulty = "Hard"
+    }
     // Get puzzle data
-    let puzzle = await Axios.get("/cheon/ws/sudoku/new/?size=9&level=" + this.state.level)
+    let sudoku = getSudoku(difficulty)
 
     // Clear a board
     let newBoard = Object.assign({}, this.state.board)
     newBoard.data.forEach((element) => element.cols.forEach((elem) => ((elem.value = ""), (elem.modifiable = true))))
 
-    // Update the board in state with puzzle
-    const puzzleData = puzzle.data.squares
-    for (let i = 0; i < puzzleData.length; i++) {
-      newBoard.data.find((a) => a.col_index === puzzleData[i].x).cols.find((b) => b.row === puzzleData[i].y).value = puzzleData[i].value
-      newBoard.data.find((a) => a.col_index === puzzleData[i].x).cols.find((b) => b.row === puzzleData[i].y).modifiable = false
+    for (let i = 0; i < sudoku.length; i++) {
+      for (let j = 0; j < sudoku[i].length; j++) {
+        if (sudoku[i][j] !== null) {
+          newBoard.data.find((a) => a.col_index === i).cols.find((b) => b.row === j).value = Number(sudoku[i][j])
+          newBoard.data.find((a) => a.col_index === i).cols.find((b) => b.row === j).modifiable = false
+        }
+      }
     }
+
     // Update both boards with new puzzle data
-    this.setState((prev) => ({ board: newBoard, untouchedBoard: newBoard }))
+    this.setState((prev) => ({ board: newBoard }))
     this.updateMessage()
   }
 
@@ -160,8 +178,10 @@ class HomePage extends Component {
       difficulty = "easy"
     } else if (Number(this.state.level) === 2) {
       difficulty = "medium"
-    } else {
+    } else if (Number(this.state.level) === 3) {
       difficulty = "hard"
+    } else {
+      difficulty = "real hard"
     }
     if (difficulty) {
       this.setState((prev) => ({ message: `Good luck on your ${difficulty} Sudoku problem!` }))
@@ -198,6 +218,12 @@ class HomePage extends Component {
               <input className="form-check-input" onChange={this.updateLevel} type="radio" name="difficulty" id="Hard" value={3} />
               <label className="form-check-label" htmlFor="inlineRadio3">
                 Hard
+              </label>
+            </div>
+            <div className="form-check form-check-inline">
+              <input className="form-check-input" onChange={this.updateLevel} type="radio" name="difficulty" id="RealHard" value={4} />
+              <label className="form-check-label" htmlFor="inlineRadio4">
+                Real Hard
               </label>
             </div>
             <div className="form-check form-check-inline">
