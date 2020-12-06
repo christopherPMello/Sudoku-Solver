@@ -1,2 +1,3 @@
 # Sudoku-Solver
-A web app that validates and solves Sudoku puzzles
+A web app implementation of the backtracking sudoku solving algorithm
+https://sudokuuuu.herokuapp.com/
