@@ -1,2 +1,2 @@
 # Sudoku-Solver
-A web app that creates and solves Sudoku puzzles
+A web app that validates and solves Sudoku puzzles
