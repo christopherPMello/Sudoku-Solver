@@ -10,7 +10,7 @@ class Element extends Component {
     const row = this.props.elem.row
     const col = this.props.elem.col
     let iden = "input_elem "
-    if (mod === false) {
+    if (!mod) {
       iden += " readonly"
     }
     if (row === 0 || row === 3 || row === 6) {

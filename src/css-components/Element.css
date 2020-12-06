@@ -10,17 +10,22 @@
   border-color: black;
 }
 .readonly {
-  color: #36454f;
+  color: slategrey;
+  border-color: black;
 }
 .left {
   border-left: solid;
+  border-color: black;
 }
 .right {
   border-right: solid;
+  border-color: black;
 }
 .bottom {
   border-bottom: solid;
+  border-color: black;
 }
 .top {
   border-top: solid;
+  border-color: black;
 }

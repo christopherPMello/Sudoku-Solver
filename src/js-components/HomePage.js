@@ -17,43 +17,45 @@ class HomePage extends Component {
     }
   }
 
+  safeGuardFunction = (all = true) => {
+    if (this.state.level === null) {
+      this.setState((prev) => ({ message: "Choose a difficulty level!" }))
+      return false
+    } else if (this.state.untouchedBoard === null && all) {
+      this.setState((prev) => ({ message: "Click 'New Puzzle' to play!" }))
+      return false
+    }
+    return true
+  }
+
   /////////////////////////////////////////////////////
   // Solving Sudoku functions
   /////////////////////////////////////////////////////
   solveSudokuMain = (e) => {
     e.preventDefault()
-    this.solveSudokuRecuse(this.state.untouchedBoard)
-    console.log(this.state.board)
+    if (!this.safeGuardFunction()) return
+    const solvedBoard = this.solveSudokuRecuse(this.state.untouchedBoard)
+    this.setState((prev) => ({ message: "Solved Sudoku solution!", board: solvedBoard }))
   }
 
-  solveSudokuRecuse = (board, row = null, col = null, quad = null) => {
+  solveSudokuRecuse = (board) => {
     const unassigned = this.firstUnassignedLocation(board)
     if (unassigned === undefined) {
-      this.setState((prev) => ({ message: "Puzzle solved!", board: board }))
-      return true
+      return board
     }
-
-    row = unassigned.row
-    col = unassigned.col
-    quad = unassigned.quad
 
     for (let i = 0; i < board.length; i++) {
-      const vals = this.checkColRowQuad(board, row, col, quad)
-      console.log(vals)
-      const status = vals.row.includes(i + 1) && vals.col.includes(i + 1) && vals.quad.includes(i + 1)
-      console.log(status)
-
-      if (status) {
-        board.data.find((a) => a.col_index === col).cols.find((b) => b.row === row).value = i + 1
-
-        if (this.solveSudokuRecuse(board, row, col, quad)) {
-          this.setState((prev) => ({ message: "Puzzle solved!", board: board }))
-          return true
-        }
-        board.data.find((a) => a.col_index === col).cols.find((b) => b.row === row).value = ""
+      const vals = this.checkColRowQuad(board, unassigned.col, unassigned.row, unassigned.quad)
+      if (!vals.row.includes(i + 1) && !vals.col.includes(i + 1) && !vals.quad.includes(i + 1)) {
+        board.data.find((a) => a.col_index === unassigned.col).cols.find((b) => b.row === unassigned.row).value = i + 1
+        this.solveSudokuRecuse(board)
       }
     }
-    return false
+    if (this.firstUnassignedLocation(board) !== undefined) {
+      board.data.find((a) => a.col_index === unassigned.col).cols.find((b) => b.row === unassigned.row).value = ""
+    }
+
+    return board
   }
 
   firstUnassignedLocation = (board) => {
@@ -95,22 +97,18 @@ class HomePage extends Component {
   checkSudoku = (e) => {
     e.preventDefault()
 
-    // Make sure a level was chosen
-    if (this.state.untouchedBoard === null) {
-      this.setState((prev) => ({ message: "Choose a puzzle to solve!" }))
-      return
-    }
+    if (!this.safeGuardFunction()) return
 
     // Gather column, row, and quad inputs
     for (let i = 0; i < this.state.board.length; i++) {
       let vals = this.checkColRowQuad(this.state.board, i, i, i)
-      let col_set = vals.col,
-        row_set = vals.row,
-        quad_set = vals.quad
+      let col_set = vals.col.sort(),
+        row_set = vals.row.sort(),
+        quad_set = vals.quad.sort()
 
       // Make sure that there is exactly
       for (let j = 0; j < this.state.board.length; j++) {
-        if (col_set.sort()[j] !== j + 1 || row_set.sort()[j] !== j + 1 || quad_set.sort()[j] !== j + 1) {
+        if (col_set[j] !== j + 1 || row_set[j] !== j + 1 || quad_set[j] !== j + 1) {
           this.setState((prev) => ({ message: "That is not a correct solution. Keep on trying!" }))
           return
         }
@@ -124,11 +122,9 @@ class HomePage extends Component {
   /////////////////////////////////////////////////////
   generateSudoku = async (e) => {
     e.preventDefault()
-    // Change message in banner
-    if (this.state.level === null) {
-      this.setState((prev) => ({ message: "Choose a difficulty level!" }))
-      return
-    }
+
+    if (!this.safeGuardFunction(false)) return
+
     // Get puzzle data
     let puzzle = await Axios.get("/cheon/ws/sudoku/new/?size=9&level=" + this.state.level)
 
@@ -142,6 +138,7 @@ class HomePage extends Component {
       newBoard.data.find((a) => a.col_index === puzzleData[i].x).cols.find((b) => b.row === puzzleData[i].y).value = puzzleData[i].value
       newBoard.data.find((a) => a.col_index === puzzleData[i].x).cols.find((b) => b.row === puzzleData[i].y).modifiable = false
     }
+    // Update both boards with new puzzle data
     this.setState((prev) => ({ board: newBoard, untouchedBoard: newBoard }))
     this.updateMessage()
   }
@@ -150,7 +147,7 @@ class HomePage extends Component {
   // Updating state functions
   /////////////////////////////////////////////////////
   updateGrid = (val, index) => {
-    // Update the grid with input
+    // Update the grid with user input
     let newBoard = Object.assign({}, this.state.board)
     newBoard.data.find((a) => a.col_index === Math.floor(index / 9)).cols.find((b) => b.index === index).value = val
     this.setState((prev) => ({ board: newBoard }))
@@ -172,7 +169,7 @@ class HomePage extends Component {
   }
 
   updateLevel = (e) => {
-    // Update level
+    // Update level with users choice
     const event = e.currentTarget.value
     this.setState((prev) => ({ level: event }))
   }
